@@ -1,76 +1,67 @@
 <template>
-
   <div class="single-answer">
     <p class="text-muted">
-      <strong> {{ answer.author }} </strong> &#8901; {{ answer.created_at }}
+      <strong>{{ answer.author }}</strong> &#8901; {{ answer.created_at }}
     </p>
-
-    <p > {{ answer.body }}  </p>
+    <p>{{ answer.body }}</p>
     <div v-if="isAnswerAuthor">
       <router-link
-          :to="{ name: 'answer-editor', params: {id: answer.id } }"
-          class="btn btn-sm btn-outline-secondary mr-1"
-          > Edit
+        :to="{ name: 'answer-editor', params: { id: answer.id } }"
+        class="btn btn-sm btn-outline-secondary mr-1"
+        >Edit
       </router-link>
-
       <button
-          class="btn btn-sm btn-outline-danger"
-          @click="triggerDeleteAnswer"
-          > Delete
+        class="btn btn-sm btn-outline-danger"
+        @click="triggerDeleteAnswer"
+        >Delete
       </button>
     </div>
-    <div v-else>
+    <div v-else>      
       <button
-          class="btn btn-sm "
-          @click="toggleLike"
-          :class="{
-            'btn-danger': userLikedAnswer,
-            'btn-outline-danger': !userLikedAnswer
-            }"
-          > <strong> Like [{{ likesCounter }}] </strong>
+        class="btn btn-sm"
+        @click="toggleLike"
+        :class="{
+          'btn-danger': userLikedAnswer,
+          'btn-outline-danger': !userLikedAnswer
+          }"
+        ><strong>Like [{{ likesCounter }}]</strong>
       </button>
     </div>
     <hr>
   </div>
-
 </template>
-
 
 <script>
 import { apiService } from "@/common/api.service.js";
-
 export default {
   name: "AnswerComponent",
   props: {
     answer: {
       type: Object,
-      required: true,
+      required: true
     },
     requestUser: {
       type: String,
-      required: true,
+      required: true
     }
   },
-  data () {
+  data() {
     return {
       userLikedAnswer: this.answer.user_has_voted,
-      likesCounter: this.answer.likes_count,
+      likesCounter: this.answer.likes_count
     }
   },
   computed: {
     isAnswerAuthor() {
+      // return true if the logged in user is also the author of the answer instance
       return this.answer.author === this.requestUser;
     }
   },
-
   methods: {
-    triggerDeleteAnswer() {
-      this.$emit("delete-answer", this.answer)
-    },
     toggleLike() {
       this.userLikedAnswer === false
-          ? this.likeAnswer()
-          : this.unLikeAnswer()
+        ? this.likeAnswer()
+        : this.unLikeAnswer()
     },
     likeAnswer() {
       this.userLikedAnswer = true;
@@ -79,18 +70,16 @@ export default {
       apiService(endpoint, "POST")
     },
     unLikeAnswer() {
-
+      this.userLikedAnswer = false;
+      this.likesCounter -= 1;
+      let endpoint = `/api/answers/${ this.answer.id }/like/`;
+      apiService(endpoint, "DELETE")
     },
-  },
-
-  created() {
-    document.title = "Editor - QuestionTime";
-  },
+    triggerDeleteAnswer() {
+      // emit an event to delete an answer instance
+      this.$emit("delete-answer", this.answer)
+    }
+  }
 }
-
 </script>
 
-<style>
-
-
-</style>
